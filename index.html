@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Dash — Speed Mathematics &amp; Statistics Arena</title>
+  <meta name="description" content="Test your speed and accuracy across Arithmetic, Algebra, Number Theory, Statistics, and Probability in this fast-paced browser math game." />
+  <meta property="og:title" content="Math Dash — Speed Mathematics &amp; Statistics Arena" />
+  <meta property="og:description" content="A fast-paced browser quiz game covering Arithmetic, Algebra, Number Theory, Statistics, and Probability with live response-time analytics." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b0f1e'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='bold' font-size='40' fill='%2322d3ee'%3E%E2%88%91%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="bg-symbols" aria-hidden="true">
+    <span>∑</span><span>π</span><span>√</span><span>∞</span><span>∫</span><span>≠</span><span>≈</span>
+    <span>∑</span><span>π</span><span>√</span><span>∞</span><span>∫</span><span>≠</span><span>≈</span>
+  </div>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">∑</span>
+      <span class="brand-name">Math Dash</span>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-sound" class="icon-btn" type="button" aria-label="Toggle sound effects" aria-pressed="true">
+        <span id="sound-icon" aria-hidden="true">🔊</span>
+      </button>
+      <button id="btn-theme" class="icon-btn" type="button" aria-label="Toggle color theme">
+        <span id="theme-icon" aria-hidden="true">☀️</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <!-- HOME SCREEN -->
+    <section id="screen-home" class="screen is-active" aria-labelledby="home-title">
+      <div class="hero">
+        <h1 id="home-title" class="hero-title">Math Dash</h1>
+        <p class="hero-tagline">High-velocity problem solving across pure and applied mathematics.</p>
+      </div>
+
+      <div class="glass-card setup-card">
+        <div class="control-group">
+          <div class="group-header">
+            <span class="group-label">1. Select Topics</span>
+            <span id="topic-hint" class="validation-hint" role="alert">Select at least one topic to start</span>
+          </div>
+          <div id="topic-chips" class="chip-grid" role="group" aria-label="Mathematics topics">
+            <button type="button" class="chip is-selected" data-topic="arithmetic" aria-pressed="true">Arithmetic</button>
+            <button type="button" class="chip is-selected" data-topic="algebra" aria-pressed="true">Algebra</button>
+            <button type="button" class="chip is-selected" data-topic="numberTheory" aria-pressed="true">Number Theory</button>
+            <button type="button" class="chip is-selected" data-topic="statistics" aria-pressed="true">Statistics</button>
+            <button type="button" class="chip is-selected" data-topic="probability" aria-pressed="true">Probability</button>
+          </div>
+        </div>
+
+        <div class="split-controls">
+          <div class="control-group">
+            <span class="group-label">2. Difficulty</span>
+            <div id="difficulty-group" class="segmented" role="radiogroup" aria-label="Difficulty level">
+              <button type="button" class="seg-btn is-selected" data-difficulty="easy" aria-checked="true">Easy</button>
+              <button type="button" class="seg-btn" data-difficulty="medium" aria-checked="false">Medium</button>
+              <button type="button" class="seg-btn" data-difficulty="hard" aria-checked="false">Hard</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="group-label">3. Game Mode</span>
+            <div id="mode-group" class="segmented" role="radiogroup" aria-label="Game mode">
+              <button type="button" class="seg-btn is-selected" data-mode="sprint" aria-checked="true">Sprint (60s)</button>
+              <button type="button" class="seg-btn" data-mode="survival" aria-checked="false">Survival (3 ♥)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pb-banner">
+          <span class="pb-label">Personal Best (<span id="pb-context">Sprint · Easy</span>)</span>
+          <span id="pb-value" class="pb-value mono">0</span>
+        </div>
+
+        <button id="btn-start" class="btn-primary" type="button">
+          <span>Start Session</span>
+          <kbd class="key-hint">Enter</kbd>
+        </button>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section id="screen-game" class="screen" aria-label="Active quiz game" hidden>
+      <div class="hud glass-card">
+        <div class="hud-stat">
+          <span class="hud-label">Score</span>
+          <span id="hud-score" class="hud-value mono">0</span>
+        </div>
+        <div class="hud-stat">
+          <span class="hud-label">Streak</span>
+          <div class="streak-wrap">
+            <span id="hud-flame" class="flame" aria-hidden="true">🔥</span>
+            <span id="hud-streak" class="hud-value mono">0</span>
+            <span id="hud-mult" class="mult-badge mono">1x</span>
+          </div>
+        </div>
+        <div id="hud-lives-wrap" class="hud-stat" hidden>
+          <span class="hud-label">Lives</span>
+          <span id="hud-lives" class="hud-value" aria-label="3 lives remaining">♥♥♥</span>
+        </div>
+        <button id="btn-pause" class="icon-btn" type="button" aria-label="Pause game (Escape)">⏸</button>
+      </div>
+
+      <div class="timer-track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+        <div id="timer-fill" class="timer-fill"></div>
+      </div>
+
+      <article id="question-card" class="glass-card question-card">
+        <div class="badges">
+          <span id="q-topic" class="badge badge-cyan">Arithmetic</span>
+          <span id="q-diff" class="badge badge-violet">Easy</span>
+        </div>
+        <p id="q-prompt" class="question-prompt mono" aria-live="polite">12 + 8 = ?</p>
+        <div id="particle-layer" class="particle-layer" aria-hidden="true"></div>
+      </article>
+
+      <div id="options-grid" class="options-grid" role="group" aria-label="Answer choices">
+        <button type="button" class="option-btn" data-index="0"><span class="key-badge mono">1</span><span class="option-text mono">20</span></button>
+        <button type="button" class="option-btn" data-index="1"><span class="key-badge mono">2</span><span class="option-text mono">18</span></button>
+        <button type="button" class="option-btn" data-index="2"><span class="key-badge mono">3</span><span class="option-text mono">22</span></button>
+        <button type="button" class="option-btn" data-index="3"><span class="key-badge mono">4</span><span class="option-text mono">24</span></button>
+      </div>
+
+      <p id="sr-announcer" class="sr-only" aria-live="assertive"></p>
+    </section>
+
+    <!-- RESULTS SCREEN -->
+    <section id="screen-results" class="screen" aria-labelledby="results-title" hidden>
+      <div class="glass-card results-card">
+        <div class="results-header">
+          <div>
+            <h2 id="results-title" class="results-title">Session Complete</h2>
+            <p id="new-pb-banner" class="new-pb" hidden>★ New Personal Best!</p>
+          </div>
+          <div id="grade-badge" class="grade-badge mono" aria-label="Performance grade">A</div>
+        </div>
+
+        <div class="final-score-box">
+          <span class="hud-label">Final Score</span>
+          <span id="res-score" class="final-score mono">0</span>
+        </div>
+
+        <div class="stats-grid" aria-label="Response time and accuracy statistics">
+          <div class="stat-tile">
+            <span class="stat-label">Accuracy</span>
+            <span id="stat-accuracy" class="stat-num mono">0%</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Mean Time</span>
+            <span id="stat-mean" class="stat-num mono">0.00s</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Median Time</span>
+            <span id="stat-median" class="stat-num mono">0.00s</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Std Dev (σ)</span>
+            <span id="stat-sd" class="stat-num mono">0.00s</span>
+          </div>
+        </div>
+
+        <div class="topic-breakdown">
+          <h3 class="breakdown-title">Topic Accuracy Breakdown</h3>
+          <div id="topic-bars" class="bars-list"></div>
+        </div>
+
+        <div class="results-actions">
+          <button id="btn-again" class="btn-primary" type="button">Play Again</button>
+          <button id="btn-settings" class="btn-secondary" type="button">Change Settings</button>
+          <button id="btn-share" class="btn-secondary" type="button">Share Summary</button>
+        </div>
+        <p id="share-feedback" class="share-feedback" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pause-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden>
+    <div class="glass-card modal-card">
+      <h2 id="pause-title">Game Paused</h2>
+      <p class="modal-sub">Press Escape or click below to resume your run.</p>
+      <div class="modal-actions">
+        <button id="btn-resume" class="btn-primary" type="button">Resume</button>
+        <button id="btn-quit" class="btn-secondary" type="button">Quit to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
